@@ -1,5 +1,5 @@
-import request from 'supertest';
 import Benchmark from 'benchmark';
+import request from 'supertest';
 
 describe('Feedback API Performance Tests', () => {
   const baseUrl = 'http://127.0.0.1:3000';
@@ -10,9 +10,11 @@ describe('Feedback API Performance Tests', () => {
   jest.setTimeout(RUN_TIME + 10000); // Aumentar el tiempo de ejecución del test
 
   it('should perform with 1000 concurrent users for 10 minutes', async () => {
-    const suite = new Benchmark.Suite();
+    console.log('Starting performance test with 1000 concurrent users...');
 
-    suite
+    const suiteWithLoad = new Benchmark.Suite();
+
+    suiteWithLoad
       .add('POST /feedback/', async function () {
         const newFeedback = {
           name: 'Jane Doe',
@@ -33,10 +35,22 @@ describe('Feedback API Performance Tests', () => {
           .send({ id: createdFeedbackId });
       })
       .on('cycle', function (event) {
-        console.log(String(event.target));
+        console.log('Cycle: ' + String(event.target));
       })
-      .on('complete', function () {
-        console.log('Fastest is ' + this.filter('fastest').map('name'));
+      .on('complete', async function () {
+        console.log('Fastest with load is ' + this.filter('fastest').map('name'));
+        
+        // Generar reporte con benchmark.js
+        console.log('Generating a report...');
+        const report = this.map(benchmark => ({
+          name: benchmark.name,
+          mean: benchmark.stats.mean,
+          median: benchmark.stats.median,
+          deviation: benchmark.stats.deviation,
+          hz: benchmark.stats.hz
+        }));
+
+        console.table(report);
       });
 
     // Simulación de carga de 1000 usuarios simultáneos
@@ -55,6 +69,7 @@ describe('Feedback API Performance Tests', () => {
 
     // Ejecutar durante 10 minutos
     await new Promise((resolve) => setTimeout(resolve, RUN_TIME));
-    suite.run({ async: true });
+    suiteWithLoad.run({ async: true });
+    console.log('Performance test with load completed.');
   });
 });
