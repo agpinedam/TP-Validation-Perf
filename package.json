@@ -53,5 +53,11 @@
     "mongoose": "^6.2.4",
     "passport": "^0.6.0",
     "supertest": "^6.3.4"
+  },
+  "jest": {
+    "testTimeout": 120000,
+    "forceExit": true,
+    "maxConcurrency": 10,
+    "detectOpenHandles": true
   }
 }
